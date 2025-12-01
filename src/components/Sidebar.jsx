@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Home,
   Users,
@@ -14,16 +14,14 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import logo from "../assets/images/Logo.png";
+import { AuthContext } from "../context/authProvider"
 
 export default function Sidebar() {
+  const { logout } = useContext(AuthContext)
+
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/");
-  };
 
   const menuItems = [
     { icon: <Home />, text: "Inicio", path: "/panel-admin" },
@@ -39,7 +37,7 @@ export default function Sidebar() {
       {/* 🔘 Botón flotante en móvil */}
       <button
         className="lg:hidden fixed bottom-5 left-5 z-50 
-          bg-gradient-to-r from-blue-600 to-blue-800 
+          bg-linear-to-r from-blue-600 to-blue-800 
           text-white p-4 rounded-full shadow-lg 
           hover:scale-110 hover:shadow-blue-500/40 
           transition-all duration-300"
@@ -109,7 +107,7 @@ export default function Sidebar() {
 
           {/* BOTÓN CERRAR SESIÓN */}
           <button
-            onClick={handleLogout}
+            onClick={logout}
             className="mt-3 w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-2 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
           >
             <LogOut size={16} />

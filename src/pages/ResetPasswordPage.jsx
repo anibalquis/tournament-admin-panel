@@ -1,36 +1,52 @@
 import Silk from '../ui/Silk';
 import React, { useState } from "react";
 import { FaLock, FaArrowLeft, FaEye, FaEyeSlash, FaCheckCircle } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import logo from "../assets/images/Logo.png";
+import { resetPassword } from '../service/auth';
+import { toast } from 'sonner';
+import { notifyError, notifySuccess } from '../lib/notify';
 
 export default function ResetPasswordPage() {
+  const { tokenReset } = useParams();
+  const navigate = useNavigate();
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [message, setMessage] = useState("");
-  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
 
     if (newPassword === "" || confirmPassword === "") {
-      setMessage("⚠️ Por favor, completa ambos campos de contraseña.");
+      notifyError("Por favor, completa ambos campos de contraseña.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setMessage("❌ Las contraseñas no coinciden. Intenta de nuevo.");
+      notifyError("Las contraseñas no coinciden. Intenta de nuevo.");
       return;
     }
-    
-    setMessage("✅ Contraseña restablecida con éxito. Redirigiendo al inicio de sesión...");
-    
-    setTimeout(() => {
-      navigate("/");
-    }, 3000);
+
+    try {
+      const data = await resetPassword({ newPassword, tokenReset });
+
+      if (data.isError) {
+        notifyError(data.message);
+        return;
+      }
+
+      notifySuccess(
+        "Contraseña restablecida con éxito.\n¡Redirigiendo al inicio de sesión!",
+      );
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } catch {
+      toast.error("Error al conectar con el servidor.", { position: "top-center" });
+    }
   };
 
   const handleGoBack = (e) => {
@@ -71,12 +87,6 @@ export default function ResetPasswordPage() {
             Ingresa tu nueva contraseña segura a continuación.
           </p>
         </div>
-        
-        {message && (
-          <div className={`p-3 mb-4 rounded-lg text-sm ${message.includes('✅') ? 'bg-green-500/20 text-green-300' : message.includes('❌') ? 'bg-red-500/20 text-red-300' : 'bg-yellow-500/20 text-yellow-300'} transition-all duration-300`}>
-            {message}
-          </div>
-        )}
 
         <form className="space-y-6 text-left" onSubmit={handleSubmit}>
           

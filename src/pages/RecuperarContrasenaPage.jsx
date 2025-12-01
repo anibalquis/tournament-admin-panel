@@ -1,24 +1,43 @@
 import Silk from '../ui/Silk';
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaArrowLeft, FaEnvelope, FaLock, FaArrowRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/images/Logo.png";
+import { forgotPassword } from '../service/auth';
+import { notifyInfo, notifyError, notifySuccess } from '../lib/notify';
 
 export default function RecuperarContrasenaPage() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
+  const [_, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email) {
-      // Simulación de envío de correo exitoso
-      setMessage("✅ Se ha enviado un enlace de recuperación a tu correo electrónico. ¡Revisa tu bandeja de entrada!");
-      
-      // En un caso real, después del éxito, podrías redirigir al login
-      // navigate("/");
-    } else {
-      setMessage("⚠️ Por favor, ingresa tu correo electrónico.");
+
+    if (!email) {
+      notifyError("Por favor, ingresa tu correo electrónico.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      notifyInfo("Procesando solicitud, por favor espere...");
+
+      const data = await forgotPassword({ email });
+
+      if (data.isError) {
+        notifyError(data.message);
+        return;
+      }
+
+      notifySuccess(
+        "Se ha enviado un enlace de recuperación a tu correo electrónico. ¡Revisa tu bandeja de entrada!"
+      )
+    } catch {
+      notifyError("Error al conectar con el servidor.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -62,13 +81,6 @@ export default function RecuperarContrasenaPage() {
             Ingresa tu correo electrónico para recibir el enlace de restablecimiento.
           </p>
         </div>
-        
-        {/* Mensaje de estado (éxito/error) */}
-        {message && (
-          <div className={`p-3 mb-4 rounded-lg text-sm ${message.includes('✅') ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'} transition-all duration-300`}>
-            {message}
-          </div>
-        )}
 
         {/* FORM */}
         <form className="space-y-6 text-left" onSubmit={handleSubmit}>

@@ -1,33 +1,61 @@
-import Silk from '../ui/Silk';
-import React, { useState } from "react";
-import { FaEye, FaEyeSlash, FaLock, FaUser, FaArrowRight, FaShieldAlt } from "react-icons/fa";
+import Silk from "../ui/Silk";
+import { useContext, useState } from "react";
+import {
+  FaEye,
+  FaEyeSlash,
+  FaLock,
+  FaUser,
+  FaArrowRight,
+  FaShieldAlt,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/images/Logo.png";
+import { sendingLogin } from "../service/auth";
+import { AuthContext } from "../context/authProvider";
+import { notifyError } from "../lib/notify";
 
 export default function Login() {
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (email === "admin@robotech.com" && password === "12345") {
-      navigate("/panel-admin");
-    } else {
-      alert("Credenciales incorrectas");
+    if (!email || !password) {
+      notifyError("Todos los campos son obligatorios.");
+      return;
+    }
+
+    try {
+      const data = await sendingLogin({ email, password });
+
+      if (data.success === false) {
+        notifyError(data.message);
+        return;
+      }
+
+      if (data.user.role === "admin") {
+        login(data.user, data.token);
+        navigate("/panel-admin");
+      } else {
+        notifyError("Acceso denegado. Solo administradores pueden ingresar.");
+      }
+    } catch {
+      notifyError("Error al conectar con el servidor.");
     }
   };
 
   const handleForgotPasswordClick = (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     navigate("/recuperar-contrasena");
   };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center font-['Poppins','Martian_Mono'] p-4 overflow-hidden">
-      
       <div className="absolute inset-0">
         <Silk
           speed={5}
@@ -39,12 +67,11 @@ export default function Login() {
       </div>
 
       <div className="relative bg-white/5 backdrop-blur-3xl shadow-xl rounded-3xl px-8 py-10 w-full max-w-md text-center transform transition-all duration-300 z-10 border border-white/10">
-        
         <div className="flex flex-col items-center mb-8">
           <div className="relative mb-2 group">
-            <img 
-              src={logo} 
-              alt="Robotech Logo" 
+            <img
+              src={logo}
+              alt="Robotech Logo"
               className="w-20 h-20 mb-2 transition-transform duration-300 group-hover:scale-110 drop-shadow-md"
             />
             <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center shadow-md">
@@ -63,11 +90,8 @@ export default function Login() {
         </div>
 
         <form className="space-y-6 text-left" onSubmit={handleSubmit}>
-          
           <div className="relative w-full group">
-            <span
-              className="absolute -left-0.5 top-1 bottom-1 w-1.5 rounded bg-blue-400 opacity-0 transition-opacity duration-300 group-focus-within:opacity-100"
-            ></span>
+            <span className="absolute -left-0.5 top-1 bottom-1 w-1.5 rounded bg-blue-400 opacity-0 transition-opacity duration-300 group-focus-within:opacity-100"></span>
             <input
               type="email"
               id="email"
@@ -87,9 +111,7 @@ export default function Login() {
           </div>
 
           <div className="relative w-full group">
-            <span
-              className="absolute -left-0.5 top-1 bottom-1 w-1.5 rounded bg-blue-400 opacity-0 transition-opacity duration-300 group-focus-within:opacity-100"
-            ></span>
+            <span className="absolute -left-0.5 top-1 bottom-1 w-1.5 rounded bg-blue-400 opacity-0 transition-opacity duration-300 group-focus-within:opacity-100"></span>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -104,7 +126,11 @@ export default function Login() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-5 text-white/50 hover:text-blue-400 transition-all duration-200 hover:scale-110"
               >
-                {showPassword ? <FaEyeSlash className="text-blue-400" /> : <FaEye className="text-white/50" />}
+                {showPassword ? (
+                  <FaEyeSlash className="text-blue-400" />
+                ) : (
+                  <FaEye className="text-white/50" />
+                )}
               </button>
               <label
                 htmlFor="password"
@@ -124,13 +150,16 @@ export default function Login() {
                 id="remember"
                 className="w-4 h-4 accent-blue-400 rounded focus:ring-blue-300 transition-transform duration-200 hover:scale-110 bg-white/10 border-white/30"
               />
-              <label htmlFor="remember" className="text-sm text-white/70 hover:text-blue-400 cursor-pointer transition-colors duration-200">
+              <label
+                htmlFor="remember"
+                className="text-sm text-white/70 hover:text-blue-400 cursor-pointer transition-colors duration-200"
+              >
                 Recordarme
               </label>
             </div>
-            <a 
-              href="#" 
-              onClick={handleForgotPasswordClick} 
+            <a
+              href="#"
+              onClick={handleForgotPasswordClick}
               className="text-sm font-medium text-white/70 hover:text-blue-400 transition-colors duration-200 hover:underline cursor-pointer"
             >
               ¿Olvidaste tu contraseña?
@@ -147,7 +176,9 @@ export default function Login() {
         </form>
 
         <div className="mt-8 text-xs text-white/50">
-          <p className="font-light">© 2025 Robotech Security. Todos los derechos reservados.</p>
+          <p className="font-light">
+            © 2025 Robotech Security. Todos los derechos reservados.
+          </p>
         </div>
       </div>
     </div>
