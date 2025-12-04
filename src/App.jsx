@@ -89,7 +89,7 @@ export default function App() {
             } 
           />
         </Routes>
-        <Toaster richColors />
+        <Toaster />
       </BrowserRouter>
     </AuthProvider>
   );

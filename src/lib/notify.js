@@ -17,3 +17,9 @@ export const notifySuccess = (successMessage) => {
     { position: "top-center" }
   );
 };
+
+export const notifyWarning = (warningMessage) => {
+  toast.warning(warningMessage, {
+    position: "top-center",
+  });
+};
