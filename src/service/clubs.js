@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const TOKEN = localStorage.getItem("token");
+
+const getToken = () => localStorage.getItem("token");
 
 export const getClubs = async () => {
   try {
@@ -23,13 +24,6 @@ export const getClubs = async () => {
   }
 };
 
-// TODO: Corregir error de autenticación y CORS al primer render.
-/**
- * Al cargar la vista por primera vez sin recargar, las peticiones POST, PATCH y DELETE
- * fallan por política CORS y retornan: "Token inválido o expirado".
- * Verificar inicialización del token, orden de montaje y manejo del preflight OPTIONS.
- */
-
 export const createClub = async ({
   name,
   fiscal_address,
@@ -37,6 +31,8 @@ export const createClub = async ({
   logo = null,
 }) => {
   try {
+    const TOKEN = getToken()
+
     const body = {
       name,
       fiscal_address,
@@ -69,6 +65,8 @@ export const createClub = async ({
 
 export const deleteClub = async ({ clubId }) => {
   try {
+    const TOKEN = getToken()
+
     const res = await fetch(`${API_BASE_URL}/clubs/${clubId}`, {
       method: "DELETE",
       headers: {
@@ -99,7 +97,7 @@ export const updateClub = async ({
   logo,
   is_approved,
 }) => {
-  console.log({ token: TOKEN });
+  const TOKEN = getToken()
 
   try {
     const body = {
