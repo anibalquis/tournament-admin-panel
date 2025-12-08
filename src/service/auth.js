@@ -13,12 +13,14 @@ export const sendingLogin = async ({ email, password }) => {
       }),
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error ?? "Error al inicicar sesión");
+      // Detectar usuario bloqueado intentando hacer login
+      if (res.status === 403) throw new Error(data.error ?? "Usuario bloqueado");
+      throw new Error(data.error ?? "Error al iniciar sesión");
     }
 
-    const data = await res.json();
     return data;
   } catch (error) {
     return {
