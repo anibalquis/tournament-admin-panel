@@ -19,7 +19,8 @@ import { FaCalendarAlt } from "react-icons/fa";
 import "@fontsource/poppins";
 import "@fontsource/inter";
 import { AuthContext } from "../context/authProvider";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
+import { getTotalUsers } from "../service/users";
 
 const COLORS = ["#7c3aed", "#9333ea", "#c084fc", "#e9d5ff", "#facc15"]; // Datos
 
@@ -71,6 +72,22 @@ const clubsVsOtros = [
 
 export default function DashboardCards() {
   const { user } = useContext(AuthContext)
+  const [totalUsers, setTotalUsers] = useState(null)
+
+  useEffect(() => {
+    async function fetchTotal() {
+      const { isError, total } = await getTotalUsers();
+
+      if (isError) {
+        setTotalUsers(null);
+        return;
+      }
+
+      setTotalUsers(total ?? 0);
+    }
+
+    fetchTotal();
+  }, []);
 
   const smallDate = new Date().toLocaleDateString('es-ES', {
     weekday: 'short',
@@ -111,17 +128,17 @@ export default function DashboardCards() {
             {/* 📸 Contenedor de Imagen de Perfil (w-11 h-11 fijos) */}
             <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
               {
-                user?.picture
+                user?.profile_picture
                   ? (
                     <img
-                      src={user?.picture}
+                      src={user?.profile_picture}
                       alt={`Foto de perfil de ${user?.name}`}
                       className="w-full h-full object-cover"
                     />
                   )
                   : (
-                    <span className="text-lg font-semibold">
-                      { user?.name?.split('').slice(0, 2).join('').toUpperCase() }
+                    <span className="text-lg font-semibold uppercase">
+                      { user?.name?.split('').slice(0, 1).join('') }
                     </span>
                   )
               }
@@ -141,7 +158,7 @@ export default function DashboardCards() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card
             title="Usuarios"
-            value="23,422"
+            value={totalUsers ?? 'Cargando...'}
             subtitle="registrados"
             delay={0.15}
           />

@@ -6,19 +6,25 @@ export const UserCreateEditModal = ({
   formData,
   setFormData,
   handleCreate,
+  handleUpdate,
   clubs = [],
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleCreate();
+
+    if (editUser) {
+      handleUpdate();
+    } else {
+      handleCreate();
+    }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn">
+    <article className="fixed inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border animate-scaleIn max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
+        <header className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">
-            {editUser ? "Editar Rol de Usuario" : "Registrar Nuevo Usuario"}
+            {editUser ? "Editar Usuario" : "Registrar Nuevo Usuario"}
           </h2>
           <button
             onClick={() => setShowModal(false)}
@@ -26,7 +32,7 @@ export const UserCreateEditModal = ({
           >
             <FiX size={22} />
           </button>
-        </div>
+        </header>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -83,32 +89,35 @@ export const UserCreateEditModal = ({
 
           <input
             type="password"
-            placeholder="Contraseña *"
+            placeholder={editUser ? "Nueva contraseña (opcional)" : "Contraseña *"}
             value={formData.user_password}
             onChange={(e) =>
               setFormData({ ...formData, user_password: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-400"
-            required
+            required={!editUser}
           />
 
-          <div>
-            <label className="block text-gray-600 mb-1">
-              Rol del usuario *
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
-              }
-              className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-400"
-              required
-            >
-              <option value="admin">Administrador</option>
-              <option value="competitor">Competidor</option>
-              <option value="club_owner">Dueño de club</option>
-            </select>
-          </div>
+          {!editUser && (
+            <div>
+              <label className="block text-gray-600 mb-1">
+                Rol del usuario *
+              </label>
+              <select
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-400"
+                required
+              >
+                <option value="admin">Administrador</option>
+                <option value="competitor">Competidor</option>
+                <option value="club_owner">Dueño de club</option>
+                <option value="judge">Juez</option>
+              </select>
+            </div>
+          )}
 
           {/* Campo condicional para Competidor */}
           {formData.role === "competitor" && (
@@ -125,7 +134,7 @@ export const UserCreateEditModal = ({
                 <option value="">Selecciona un club</option>
                 {clubs.map((club) => (
                   <option key={club.id} value={club.id}>
-                    {club.nombre}
+                    {club.name}
                   </option>
                 ))}
               </select>
@@ -146,6 +155,52 @@ export const UserCreateEditModal = ({
             />
           )}
 
+          {editUser && formData.role === "club_owner" && (
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="club_owner_is_approved"
+                checked={formData.club_owner_is_approved}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    club_owner_is_approved: e.target.checked,
+                  })
+                }
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label
+                htmlFor="club_owner_is_approved"
+                className="text-sm font-medium text-gray-700"
+              >
+                Dueño de club aprobado
+              </label>
+            </div>
+          )}
+
+          {editUser && formData.role === "competitor" && (
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="competitor_is_approved"
+                checked={formData.competitor_is_approved}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    competitor_is_approved: e.target.checked,
+                  })
+                }
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label
+                htmlFor="competitor_is_approved"
+                className="text-sm font-medium text-gray-700"
+              >
+                Competidor aprobado
+              </label>
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"
@@ -164,6 +219,6 @@ export const UserCreateEditModal = ({
           </div>
         </form>
       </div>
-    </div>
+    </article>
   );
 };

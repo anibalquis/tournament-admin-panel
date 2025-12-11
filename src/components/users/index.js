@@ -4,3 +4,6 @@ export { UserTable } from "./Table";
 export { UserTableRows } from "./UserTableRows";
 export { UserCreateEditModal } from "./CreateEditModal";
 export { DeleteUser } from "./buttons/DeleteUser";
+export { ApprovalBadge } from "./ApprovalBadge";
+export { RoleBadge } from "./RoleBadge";
+export { UserFilters } from "./UserFilters";

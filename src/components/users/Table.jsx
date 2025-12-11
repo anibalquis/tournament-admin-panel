@@ -4,7 +4,9 @@ export const UserTable = ({
   users,
   loading,
   handleDelete,
-  search,
+  searchTerm,
+  roleFilter,
+  approverFilter,
   openModal,
 }) => {
   return (
@@ -13,13 +15,15 @@ export const UserTable = ({
         <thead className="bg-indigo-600 text-white text-xs uppercase">
           <tr>
             <th className="p-3 text-left">ID</th>
-            <th className="p-3 text-left">Nombre</th>
-            <th className="p-3 text-left hidden md:table-cell">Correo</th>
-            <th className="p-3 text-center">Administrador</th>
-            <th className="p-3 text-center">Competidor</th>
-            <th className="p-3 text-center">Dueño Club</th>
-            <th className="p-3 text-center">Juez</th>
-            <th className="p-3 text-center">Acciones</th>
+            <th className="p-3 text-left">Foto</th>
+            <th className="p-3 text-left hidden md:table-cell">Nombre</th>
+            <th className="p-3 text-left hidden md:table-cell">Apellido</th>
+            <th className="p-3 text-left">Nickname</th>
+            <th className="p-3 text-left">Email</th>
+            <th className="p-3 text-left">Rol</th>
+            <th className="p-3 text-center">Estado de Aprobación</th>
+            <th className="p-3 text-left">Aprobado por</th>
+            <th className="p-3 text-left">Acciones</th>
           </tr>
         </thead>
 
@@ -29,7 +33,9 @@ export const UserTable = ({
             loading={loading}
             handleDelete={handleDelete}
             onEdit={openModal}
-            searchTerm={search}
+            searchTerm={searchTerm}
+            roleFilter={roleFilter}
+            approverFilter={approverFilter}
           />
         </tbody>
       </table>
