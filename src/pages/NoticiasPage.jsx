@@ -1,88 +1,180 @@
 import { useState, useEffect } from "react";
-import {
-  FiPlus,
-  FiEdit2,
-  FiTrash2,
-  FiSearch,
-  FiImage,
-  FiX,
-} from "react-icons/fi";
+import { FiPlus, FiEdit2, FiSearch } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
+import { getNews, createNewsItem, updateNewsItem, deleteNewsItem } from "../service/news";
+import { notifySuccess, notifyError } from "../lib/notify";
+import { DeleteNewsButton, NewsCreateEditModal } from "../components/news";
+import { Button } from "../components/ui/button";
 
 export default function NoticiasPage() {
   const [noticias, setNoticias] = useState([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editNoticia, setEditNoticia] = useState(null);
+  const [editNews, setEditNews] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    titulo: "",
-    fecha: "",
-    descripcion: "",
-    fuente: "",
-    imagen: "",
+    title: "",
+    content: "",
+    image_url: "",
+    source_name: "",
+    source_link: "",
+    source_logo_url: "",
+    categories: "",
   });
 
+  // Fetch news on mount
+  const fetchNews = async () => {
+    setLoading(true);
+    setError(null);
+
+    const result = await getNews();
+
+    if (result.isError) {
+      setError(result.errorMessage || "Ocurrió un error al cargar las noticias. Intente nuevamente.");
+      setNoticias([]);
+    } else {
+      setNoticias(result.data || []);
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    setNoticias([
-      {
-        id: 1,
-        titulo: "TechBot gana torneo internacional",
-        fecha: "2025-11-05",
-        descripcion:
-          "El club TechBot se coronó campeón del torneo RoboCup Internacional 2025 celebrado en Lima, Perú.",
-        fuente: "Comité Nacional de Robótica",
-        imagen: "/img/techbot.jpg",
-      },
-    ]);
+    fetchNews();
   }, []);
 
-  const filteredNoticias = noticias.filter((n) =>
-    n.titulo.toLowerCase().includes(search.toLowerCase())
-  );
+  // Filter news based on search input
+  const filteredNoticias = noticias.filter((n) => {
+    const searchLower = search.toLowerCase();
+    const title = n.title?.toLowerCase() || "";
+    const author = n.publishedBy?.nickname?.toLowerCase() || "";
+    const categoriesStr = n.categories
+      ?.map((c) => c.categories?.name?.toLowerCase() || "")
+      .join(" ") || "";
 
-  const openModal = (noticia = null) => {
-    if (noticia) {
-      setEditNoticia(noticia);
-      setFormData({ ...noticia });
-    } else {
-      setEditNoticia(null);
+    return (
+      title.includes(searchLower) ||
+      author.includes(searchLower) ||
+      categoriesStr.includes(searchLower)
+    );
+  });
+
+  // Reset form data
+  const resetFormData = () => {
+    setFormData({
+      title: "",
+      content: "",
+      image_url: "",
+      source_name: "",
+      source_link: "",
+      source_logo_url: "",
+      categories: "",
+    });
+  };
+
+  // Open modal for create or edit
+  const openModal = (news = null) => {
+    if (news) {
+      setEditNews(news);
       setFormData({
-        titulo: "",
-        fecha: "",
-        descripcion: "",
-        fuente: "",
-        imagen: "",
+        title: news.title || "",
+        content: news.content || "",
+        image_url: news.image_url || "",
+        source_name: news.source_name || "",
+        source_link: news.source_link || "",
+        source_logo_url: news.source_logo_url || "",
+        categories: news.categories
+          ?.map((c) => c.categories?.id)
+          .filter(Boolean)
+          .join(", ") || "",
       });
+    } else {
+      setEditNews(null);
+      resetFormData();
     }
     setShowModal(true);
   };
 
-  const handleSave = () => {
-    if (!formData.titulo.trim() || !formData.descripcion.trim())
-      return alert("Completa los campos requeridos.");
-
-    if (editNoticia) {
-      setNoticias((prev) =>
-        prev.map((n) => (n.id === editNoticia.id ? { ...n, ...formData } : n))
-      );
-    } else {
-      const nueva = { id: noticias.length + 1, ...formData };
-      setNoticias([...noticias, nueva]);
-    }
+  // Close modal
+  const closeModal = () => {
     setShowModal(false);
+    setEditNews(null);
+    resetFormData();
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("¿Deseas eliminar esta noticia?")) {
-      setNoticias(noticias.filter((n) => n.id !== id));
+  // Handle save (create or update)
+  const handleSave = async () => {
+    setSaving(true);
+
+    // Parse categories from comma-separated string to array of IDs
+    const categoriesArray = formData.categories
+      .split(",")
+      .map((id) => parseInt(id.trim(), 10))
+      .filter((id) => !isNaN(id) && id > 0);
+
+    const payload = {
+      title: formData.title,
+      content: formData.content,
+      image_url: formData.image_url || null,
+      source_name: formData.source_name || null,
+      source_link: formData.source_link || null,
+      source_logo_url: formData.source_logo_url || null,
+      categories: categoriesArray.length > 0 ? categoriesArray : [],
+    };
+
+    if (editNews) {
+      // Update news
+      const result = await updateNewsItem(editNews.id, payload);
+
+      if (result.isError) {
+        notifyError(result.errorMessage || "Error al actualizar la noticia.");
+      } else {
+        notifySuccess(result.message || "Noticia actualizada correctamente.");
+        closeModal();
+        await fetchNews();
+      }
+    } else {
+      // Create news
+      const result = await createNewsItem(payload);
+
+      if (result.isError) {
+        notifyError(result.errorMessage || "Error al crear la noticia.");
+      } else {
+        notifySuccess(result.message || "Noticia creada correctamente.");
+        closeModal();
+        await fetchNews();
+      }
     }
+
+    setSaving(false);
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, imagen: URL.createObjectURL(file) });
+  // Handle delete news
+  const handleDelete = async (news) => {
+    setDeleting(true);
+
+    const result = await deleteNewsItem({ newsID: news.id });
+
+    if (result.isError) {
+      notifyError(result.errorMessage || "Error al eliminar la noticia.");
+    } else {
+      notifySuccess(result.message || "Noticia eliminada correctamente.");
+      setNoticias((prev) => prev.filter((n) => n.id !== news.id));
     }
+
+    setDeleting(false);
+  };
+
+  // Helper: format categories
+  const formatCategories = (categories) => {
+    if (!categories || categories.length === 0) return "_";
+    const names = categories
+      .map((c) => c.categories?.name)
+      .filter(Boolean);
+    return names.length > 0 ? names.join(", ") : "_";
   };
 
   return (
@@ -97,202 +189,156 @@ export default function NoticiasPage() {
           </h1>
           <button
             onClick={() => openModal()}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow transition-all"
+            disabled={loading}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow transition-all disabled:opacity-50"
           >
             <FiPlus /> Nueva Noticia
           </button>
         </div>
 
-        {/* Buscador */}
+        {/* Search */}
         <div className="relative mb-6 max-w-md w-full">
           <FiSearch className="absolute top-3 left-3 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar noticia..."
+            placeholder="Buscar por título, autor o categoría..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
-        {/* Tabla */}
+        {/* Table */}
         <div className="overflow-x-auto rounded-xl shadow bg-white border border-gray-100">
-          <table className="min-w-full text-sm text-gray-700">
-            <thead className="bg-indigo-600 text-white text-xs uppercase tracking-wider">
-              <tr>
-                <th className="p-3 text-left">ID</th>
-                <th className="p-3 text-left">Título</th>
-                <th className="p-3 hidden md:table-cell">Fecha</th>
-                <th className="p-3 hidden lg:table-cell">Fuente</th>
-                <th className="p-3 text-center">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredNoticias.map((n) => (
-                <tr
-                  key={n.id}
-                  className="border-b hover:bg-indigo-50 transition-colors animate-fadeIn"
-                >
-                  <td className="p-3 font-medium">{n.id}</td>
-                  <td className="p-3 font-semibold flex items-center gap-2">
-                    {n.imagen && (
-                      <img
-                        src={n.imagen}
-                        alt="img"
-                        className="w-8 h-8 rounded-md object-cover"
-                      />
-                    )}
-                    {n.titulo}
-                  </td>
-                  <td className="p-3 hidden md:table-cell">{n.fecha}</td>
-                  <td className="p-3 hidden lg:table-cell">{n.fuente}</td>
-                  <td className="p-3 text-center space-x-3">
-                    <button
-                      onClick={() => openModal(n)}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Editar Noticia"
-                    >
-                      <FiEdit2 />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(n.id)}
-                      className="text-red-600 hover:text-red-800"
-                      title="Eliminar Noticia"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredNoticias.length === 0 && (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <span className="ml-3 text-gray-600">Cargando noticias...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center text-red-600 py-12 px-4">
+              <p>{error}</p>
+              <button
+                onClick={fetchNews}
+                className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : (
+            <table className="min-w-full text-sm text-gray-700">
+              <thead className="bg-indigo-600 text-white text-xs uppercase tracking-wider">
                 <tr>
-                  <td
-                    colSpan="5"
-                    className="text-center text-gray-500 py-6 italic"
-                  >
-                    No se encontraron noticias.
-                  </td>
+                  <th className="p-3 text-left">ID</th>
+                  <th className="p-3 text-left">Imagen</th>
+                  <th className="p-3 text-left">Título</th>
+                  <th className="p-3 text-left">Contenido</th>
+                  <th className="p-3 text-left">Autor</th>
+                  <th className="p-3 text-left">Categorías</th>
+                  <th className="p-3 text-left">Fuente</th>
+                  <th className="p-3 text-left">Enlace</th>
+                  <th className="p-3 text-center">Acciones</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredNoticias.map((n) => (
+                  <tr
+                    key={n.id}
+                    className="border-b hover:bg-indigo-50 transition-colors animate-fadeIn"
+                  >
+                    <td className="p-3 font-medium">{n.id}</td>
+                    <td className="p-3">
+                      {n.image_url ? (
+                        <img
+                          src={n.image_url}
+                          alt="img"
+                          className="w-10 h-10 rounded-md object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          null
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3 font-semibold max-w-[200px] truncate" title={n.title}>
+                      {n.title}
+                    </td>
+                    <td className="p-3 max-w-[250px]">
+                      <span className="line-clamp-1" title={n.content}>
+                        {n.content}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      {n.publishedBy?.nickname || "_"}
+                    </td>
+                    <td className="p-3 max-w-[150px]">
+                      <span className="line-clamp-1" title={formatCategories(n.categories)}>
+                        {formatCategories(n.categories)}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      {n.source_name || "_"}
+                    </td>
+                    <td className="p-3">
+                      {n.source_link ? (
+                        <a
+                          href={n.source_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:underline truncate block max-w-[100px]"
+                          title={n.source_link}
+                        >
+                          Ver enlace
+                        </a>
+                      ) : (
+                        "_"
+                      )}
+                    </td>
+                    <td className="p-3 text-center flex items-center gap-2">
+                      <Button
+                        onClick={() => openModal(n)}
+                        className="bg-blue-600 hover:bg-blue-600"
+                        size="sm"
+                        title="Editar Noticia"
+                      >
+                        <FiEdit2 />
+                      </Button>
+                      <DeleteNewsButton
+                        news={n}
+                        onDelete={handleDelete}
+                        deleting={deleting}
+                      />
+                    </td>
+                  </tr>
+                ))}
+                {filteredNoticias.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan="9"
+                      className="text-center text-gray-500 py-6 italic"
+                    >
+                      {search
+                        ? "No se encontraron noticias que coincidan con los criterios de búsqueda."
+                        : "No hay noticias disponibles."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </main>
 
-      {/* MODAL */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 p-5 sm:p-6 animate-scaleIn">
-            {/* Encabezado */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {editNoticia ? "Editar Noticia" : "Crear Nueva Noticia"}
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-red-600 transition"
-              >
-                <FiX size={22} />
-              </button>
-            </div>
-
-            {/* Formulario */}
-            <form
-              className="space-y-4 text-sm pb-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSave();
-              }}
-            >
-              <div>
-                <label className="block text-gray-600 mb-1">Título</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Ganadores del torneo nacional"
-                  value={formData.titulo}
-                  onChange={(e) =>
-                    setFormData({ ...formData, titulo: e.target.value })
-                  }
-                  className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-600 mb-1">Fecha</label>
-                <input
-                  type="date"
-                  value={formData.fecha}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fecha: e.target.value })
-                  }
-                  className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-600 mb-1">Descripción</label>
-                <textarea
-                  placeholder="Escribe una breve descripción de la noticia..."
-                  value={formData.descripcion}
-                  onChange={(e) =>
-                    setFormData({ ...formData, descripcion: e.target.value })
-                  }
-                  className="border rounded-lg px-3 py-2 w-full h-24 resize-y focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-600 mb-1">Fuente o Autor</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Universidad Nacional de Ingeniería"
-                  value={formData.fuente}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fuente: e.target.value })
-                  }
-                  className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-600 mb-1 flex items-center gap-2">
-                  <FiImage /> Imagen de la Noticia
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full border border-gray-300 rounded-lg p-2"
-                />
-                {formData.imagen && (
-                  <img
-                    src={formData.imagen}
-                    alt="preview"
-                    className="mt-2 w-full h-32 object-cover rounded-lg border"
-                  />
-                )}
-              </div>
-
-              <div className="h-4" />
-            </form>
-
-            {/* Botones */}
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
-              >
-                Guardar
-              </button>
-            </div>
-          </div>
-        </div>
+        <NewsCreateEditModal
+          editNews={editNews}
+          closeModal={closeModal}
+          formData={formData}
+          setFormData={setFormData}
+          saving={saving}
+          handleSave={handleSave}
+        />
       )}
     </div>
   );
