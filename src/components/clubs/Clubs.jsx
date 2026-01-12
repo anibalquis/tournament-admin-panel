@@ -6,8 +6,7 @@ export const Clubs = ({
   error,
   filteredClubes,
   openModal,
-  handleValidate,
-  handleDelete
+  handleDelete,
 }) => {
   if (loading) {
     return (
@@ -42,7 +41,6 @@ export const Clubs = ({
         <ClubTable
           filteredClubes={filteredClubes}
           openModal={openModal}
-          handleValidate={handleValidate}
           handleDelete={handleDelete}
         />
       </div>

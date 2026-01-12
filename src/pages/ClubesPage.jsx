@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { getClubs, createClub, updateClub, deleteClub } from "../service/clubs";
 import { notifySuccess, notifyError, notifyWarning } from "../lib/notify";
-import { ClubCreateEditModal, ClubHeader, Clubs, ClubSearch } from "../components/clubs";
+import {
+  ClubCreateEditModal,
+  ClubHeader,
+  Clubs,
+  ClubSearch,
+} from "../components/clubs";
 
 export default function ClubesPage() {
   const [clubes, setClubes] = useState([]);
@@ -43,15 +48,23 @@ export default function ClubesPage() {
   // Filter clubs based on search input
   const filteredClubes = clubes.filter((club) => {
     const searchLower = search.toLowerCase();
+
     const nombre = club.name?.toLowerCase() || "";
-    const propietario = club.owner?.name?.toLowerCase() || "";
+    const propietario = club.owner?.nickname?.toLowerCase() || "";
     const direccion = club.fiscal_address?.toLowerCase() || "";
+    const ownerEmail = club.owner.email?.toLowerCase() || "";
     const estado = club.is_approved ? "aprobado" : "pendiente";
+    const competidores =
+      club.competitors?.some((c) =>
+        c.user.nickname?.toLowerCase().includes(searchLower)
+      ) || false;
 
     return (
       nombre.includes(searchLower) ||
       propietario.includes(searchLower) ||
       direccion.includes(searchLower) ||
+      ownerEmail.includes(searchLower) ||
+      competidores ||
       estado.includes(searchLower)
     );
   });
@@ -159,29 +172,6 @@ export default function ClubesPage() {
     setSaving(false);
   };
 
-  // Handle toggle approval status
-  const handleValidate = async (club) => {
-    const newApprovalStatus = !club.is_approved;
-
-    const result = await updateClub({
-      clubId: club.id,
-      is_approved: newApprovalStatus,
-    });
-
-    if (result.isError) {
-      notifyError(
-        result.errorMessage || "Error al cambiar el estado del club."
-      );
-    } else {
-      notifySuccess(
-        newApprovalStatus
-          ? "Club aprobado correctamente."
-          : "Club marcado como pendiente."
-      );
-      await fetchClubs();
-    }
-  };
-
   // Handle delete club
   const handleDelete = async (club) => {
     const result = await deleteClub({ clubId: club.id });
@@ -199,7 +189,7 @@ export default function ClubesPage() {
       <Sidebar />
 
       <section className="flex-1 p-4 sm:p-6 md:p-8 overflow-x-hidden animate-fadeInUp">
-        <ClubHeader openModal={openModal}/>
+        <ClubHeader openModal={openModal} />
 
         <ClubSearch search={search} setSearch={setSearch} />
 
@@ -208,7 +198,6 @@ export default function ClubesPage() {
           error={error}
           filteredClubes={filteredClubes}
           handleDelete={handleDelete}
-          handleValidate={handleValidate}
           openModal={openModal}
         />
       </section>

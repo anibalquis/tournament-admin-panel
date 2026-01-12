@@ -1,25 +1,21 @@
-import { FiCheckCircle, FiEdit2 } from "react-icons/fi";
+import { FiEdit2 } from "react-icons/fi";
 import { DeleteClubButton } from "./DeleteClubButton";
+import { Button } from "../ui/button";
 
-export const ClubTable = ({
-  filteredClubes,
-  openModal,
-  handleValidate,
-  handleDelete
-}) => {
+export const ClubTable = ({ filteredClubes, openModal, handleDelete }) => {
   return (
     <table className="min-w-full text-sm text-gray-700">
       <thead className="bg-indigo-600 text-white text-xs uppercase tracking-wider">
         <tr>
+          <th className="p-3 text-left hidden lg:table-cell">ID</th>
           <th className="p-3 text-left">Logo</th>
           <th className="p-3 text-left">Nombre</th>
-          <th className="p-3 text-left hidden md:table-cell">
-            Dirección Fiscal
-          </th>
-          <th className="p-3 text-left hidden lg:table-cell">Propietario</th>
+          <th className="p-3 text-left">Dirección Fiscal</th>
+          <th className="p-3 text-left">Propietario</th>
           <th className="p-3 text-left hidden lg:table-cell">
             Email Propietario
           </th>
+          <th className="p-3 text-left hidden lg:table-cell">Competidores</th>
           <th className="p-3 text-left">Estado</th>
           <th className="p-3 text-center">Acciones</th>
         </tr>
@@ -31,6 +27,11 @@ export const ClubTable = ({
             key={club.id}
             className="border-b hover:bg-indigo-50 transition-colors"
           >
+            {/* ID */}
+            <td className="p-3 font-semibold hidden lg:table-cell">
+              {club.id}
+            </td>
+
             {/* Logo */}
             <td className="p-3">
               {club.logo ? (
@@ -48,18 +49,25 @@ export const ClubTable = ({
             <td className="p-3 font-semibold">{club.name || "Sin nombre"}</td>
 
             {/* Dirección Fiscal */}
-            <td className="p-3 hidden md:table-cell">
-              {club.fiscal_address || "N/A"}
-            </td>
+            <td className="p-3">{club.fiscal_address || "N/A"}</td>
 
             {/* Propietario */}
-            <td className="p-3 hidden lg:table-cell">
-              {club.owner?.name || "N/A"}
-            </td>
+            <td className="p-3">{club.owner?.nickname || "N/A"}</td>
 
             {/* Email Propietario */}
             <td className="p-3 hidden lg:table-cell">
               {club.owner?.email || "N/A"}
+            </td>
+
+            {/* Competidores */}
+            <td className="p-3 hidden lg:table-cell">
+              {club.competitors?.length
+                ? club.competitors.map((c) => (
+                    <span key={c.user.nickname} className="block">
+                      {c.user.nickname}
+                    </span>
+                  ))
+                : "N/A"}
             </td>
 
             {/* Estado */}
@@ -76,22 +84,15 @@ export const ClubTable = ({
             </td>
 
             {/* Acciones */}
-            <td className="p-3 text-center space-x-3">
-              <button
+            <td className="p-3 flex flex-wrap gap-x-2.5 gap-y-2">
+              <Button
                 onClick={() => openModal(club)}
-                className="text-blue-600 hover:text-blue-800"
-                title="Editar"
+                className="bg-blue-600 hover:bg-blue-600 cursor-pointer"
+                title="Editar Usuario"
+                size="sm"
               >
                 <FiEdit2 />
-              </button>
-
-              <button
-                onClick={() => handleValidate(club)}
-                className="text-green-600 hover:text-green-800"
-                title="Validar"
-              >
-                <FiCheckCircle />
-              </button>
+              </Button>
 
               <DeleteClubButton onDelete={handleDelete} club={club} />
             </td>

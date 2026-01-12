@@ -1,6 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { getErrorMessage, getToken } from "../helpers";
 
-const getToken = () => localStorage.getItem("token");
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const getClubs = async () => {
   try {
@@ -14,13 +14,7 @@ export const getClubs = async () => {
 
     return { isError: false, data: clubs.data };
   } catch (error) {
-    return {
-      isError: true,
-      errorMessage:
-        error instanceof Error
-          ? error.message
-          : "Ocurrió un error en el servidor. Por favor, inténtalo de nuevo.",
-    };
+    return getErrorMessage({ error });
   }
 };
 
@@ -31,7 +25,7 @@ export const createClub = async ({
   logo = null,
 }) => {
   try {
-    const TOKEN = getToken()
+    const TOKEN = getToken();
 
     const body = {
       name,
@@ -54,18 +48,13 @@ export const createClub = async ({
     if (!res.ok) throw new Error(data.error);
     return { isError: false, message: data.message };
   } catch (error) {
-    return {
-      isError: true,
-      message: error instanceof Error
-        ? error.message
-        : "Ocurrió un error en el servidor. Por favor, inténtalo de nuevo.",
-    };
+    return getErrorMessage({ error });
   }
 };
 
 export const deleteClub = async ({ clubId }) => {
   try {
-    const TOKEN = getToken()
+    const TOKEN = getToken();
 
     const res = await fetch(`${API_BASE_URL}/clubs/${clubId}`, {
       method: "DELETE",
@@ -80,13 +69,7 @@ export const deleteClub = async ({ clubId }) => {
 
     return { isError: false, message: data.message };
   } catch (error) {
-    return {
-      isError: true,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Ocurrió un error en el servidor. Por favor, inténtalo de nuevo.",
-    };
+    return getErrorMessage({ error });
   }
 };
 
@@ -97,7 +80,7 @@ export const updateClub = async ({
   logo,
   is_approved,
 }) => {
-  const TOKEN = getToken()
+  const TOKEN = getToken();
 
   try {
     const body = {
@@ -120,17 +103,8 @@ export const updateClub = async ({
 
     if (!res.ok) throw new Error(data.error);
 
-    return {
-      isError: false,
-      message: data.message,
-    };
+    return { isError: false, message: data.message };
   } catch (error) {
-    return {
-      isError: true,
-      errorMessage:
-        error instanceof Error
-          ? error.message
-          : "Ocurrió un error en el servidor. Por favor, inténtalo de nuevo.",
-    };
+    return getErrorMessage({ error });
   }
 };

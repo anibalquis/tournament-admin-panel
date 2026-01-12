@@ -10,30 +10,33 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
+import { Button } from "../ui/button";
 
 export const DeleteClubButton = ({ club, onDelete }) => {
-  console.log(club)
-
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <button
-          className="text-red-600 hover:text-red-800"
-          title="Eliminar"
+        <Button
+          className="cursor-pointer"
+          variant="destructive"
+          size="sm"
+          title="Eliminar Usuario"
         >
           <FiTrash2 />
-        </button>
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Estas completamente seguro</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acción no se puede deshacer. Eliminará permanentemente {club.name}.
+            Esta acción no se puede deshacer. Eliminará permanentemente{" "}
+            {club.name}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
+            className="bg-[#432dd7]"
             onClick={() => onDelete(club)}
           >
             Eliminar
