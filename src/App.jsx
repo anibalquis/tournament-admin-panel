@@ -12,6 +12,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { AuthProvider, AuthContext } from "./context/authProvider";
 import { Toaster } from "./components/ui/sonner";
 import CategoriasPage from "./pages/CategoriesPage";
+import RobotsPage from "./pages/RobotsPage";
 
 // Componente de protección de rutas
 function ProtectedRoute({ children }) {
@@ -76,6 +77,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <CategoriasPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/panel-admin/robots"
+            element={
+              <ProtectedRoute>
+                <RobotsPage />
               </ProtectedRoute>
             }
           />
