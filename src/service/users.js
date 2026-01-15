@@ -6,7 +6,7 @@ export const getUsers = async () => {
   try {
     const TOKEN = getToken();
 
-    const res = await fetch(`${API_BASE_URL}/users`, {
+    const res = await fetch(`${API_BASE_URL}/users?take=30`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${TOKEN}`,
