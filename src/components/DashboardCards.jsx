@@ -2,15 +2,10 @@ import { motion } from "framer-motion";
 import {
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  LineChart,
-  Line,
   ResponsiveContainer,
 } from "recharts";
 // Importar íconos para el Header
@@ -21,79 +16,87 @@ import "@fontsource/inter";
 import { AuthContext } from "../context/authProvider";
 import { useContext, useEffect, useState } from "react";
 import { getTotalUsers } from "../service/users";
+import { getClubRankings, getCompetitorRankings, getTotalClubs, getTotalTournaments } from "../service";
+import { ClubRankings } from "./rankings/Clubs";
+import { CompetitorRankings } from "./rankings/Competitors";
 
 const COLORS = ["#7c3aed", "#9333ea", "#c084fc", "#e9d5ff", "#facc15"]; // Datos
 
-const torneosData = [
-  { name: "Lucha libre", value: 100 },
-  { name: "Sumo", value: 75 },
-  { name: "Boxeo", value: 95 },
-  { name: "Desafíos", value: 25 },
-];
-
-const clubsPie = [
-  { name: "Club A", value: 40 },
-  { name: "Club B", value: 25 },
-  { name: "Club C", value: 20 },
-  { name: "Club D", value: 10 },
-  { name: "Club E", value: 5 },
-];
-
-const rankingData = [
-  { id: 1, club: "Robotec Sur", pts: 98 },
-  { id: 2, club: "Innovabots Norte", pts: 91 },
-  { id: 3, club: "CyberTeam Andes", pts: 87 },
-  { id: 4, club: "RobotMasters", pts: 75 },
-  { id: 5, club: "TechnoKids", pts: 69 },
-  { id: 6, club: "Fenix Robotics", pts: 63 },
-  { id: 7, club: "NeoBot Factory", pts: 59 },
-  { id: 8, club: "CerebroBot", pts: 54 },
-  { id: 9, club: "EagleTech", pts: 49 },
-  { id: 10, club: "RoboFuture", pts: 42 },
-];
-
-const tareasData = [
-  { sprint: "Sprint 1", tareas: 10 },
-  { sprint: "Sprint 2", tareas: 15 },
-  { sprint: "Sprint 3", tareas: 18 },
-];
-
 const progresoData = [
-  { sprint: "Sprint 1", progreso: 60 },
-  { sprint: "Sprint 2", progreso: 85 },
-  { sprint: "Sprint 3", progreso: 100 },
-];
-
-const clubsVsOtros = [
-  { name: "Club A", value: 40 },
-  { name: "Club B", value: 35 },
-  { name: "Otros", value: 25 },
+  { sprint: "Sprint 1", progreso: 100 },
+  { sprint: "Sprint 2", progreso: 100 },
+  { sprint: "Sprint 3", progreso: 45 },
 ];
 
 export default function DashboardCards() {
-  const { user } = useContext(AuthContext)
-  const [totalUsers, setTotalUsers] = useState(null)
+  const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    async function fetchTotal() {
-      const { isError, total } = await getTotalUsers();
+  // Totals
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalClubs, setTotalClubs] = useState(0);
+  const [totalTournaments, setTotalTournaments] = useState(0);
 
-      if (isError) {
-        setTotalUsers(null);
-        return;
-      }
+  // Rankings
+  const [clubRankings, setClubRankings] = useState([]);
+  const [competitorRankings, setCompetitorRankings] = useState([]);
 
-      setTotalUsers(total ?? 0);
+  const [loadingRankings, setLoadingRankings] = useState(true);
+  const [loadingCompetitors, setLoadingCompetitors] = useState(true);
+
+  async function fetchClubRankings() {
+    setLoadingRankings(true);
+
+    const { isError, data } = await getClubRankings();
+
+    if (isError) {
+      setClubRankings([]);
+      setLoadingRankings(false);
+      return;
     }
 
-    fetchTotal();
+    setClubRankings(data ?? []);
+    setLoadingRankings(false);
+  }
+
+  async function fetchCompetitorRankings() {
+    setLoadingCompetitors(true);
+    const { isError, data } = await getCompetitorRankings();
+
+    setCompetitorRankings(isError ? [] : (data ?? []));
+    setLoadingCompetitors(false);
+  }
+
+  async function fetchTotalUsers() {
+    const { isError, total } = await getTotalUsers();
+    setTotalUsers(isError ? 0 : total ?? 0);
+  }
+
+  async function fetchTotalClubs() {
+    const { isError, total } = await getTotalClubs();
+    setTotalClubs(isError ? 0 : total ?? 0);
+  }
+
+  async function fetchTotalTournaments() {
+    const { isError, total } = await getTotalTournaments();
+    setTotalTournaments(isError ? 0 : total ?? 0);
+  }
+
+  useEffect(() => {
+    // Totals
+    fetchTotalUsers();
+    fetchTotalClubs();
+    fetchTotalTournaments();
+
+    // Rankings
+    fetchClubRankings();
+    fetchCompetitorRankings();
   }, []);
 
-  const smallDate = new Date().toLocaleDateString('es-ES', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  })
+  const smallDate = new Date().toLocaleDateString("es-ES", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
 
   return (
     <motion.div
@@ -127,26 +130,24 @@ export default function DashboardCards() {
           <div className="flex items-center gap-4 bg-white p-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-purple-100">
             {/* 📸 Contenedor de Imagen de Perfil (w-11 h-11 fijos) */}
             <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-              {
-                user?.profile_picture
-                  ? (
-                    <img
-                      src={user?.profile_picture}
-                      alt={`Foto de perfil de ${user?.name}`}
-                      className="w-full h-full object-cover"
-                    />
-                  )
-                  : (
-                    <span className="text-lg font-semibold uppercase">
-                      { user?.name?.split('').slice(0, 1).join('') }
-                    </span>
-                  )
-              }
+              {user?.profile_picture ? (
+                <img
+                  src={user?.profile_picture}
+                  alt={`Foto de perfil de ${user?.name}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-lg font-semibold uppercase">
+                  {user?.name?.split("").slice(0, 1).join("")}
+                </span>
+              )}
             </div>
 
             <div>
               <h2 className="text-sm font-bold text-gray-900">{user?.name}</h2>
-              <p className="text-xs text-purple-500 font-medium">{user?.role}</p>
+              <p className="text-xs text-purple-500 font-medium">
+                {user?.role}
+              </p>
             </div>
           </div>
         </div>
@@ -158,19 +159,19 @@ export default function DashboardCards() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card
             title="Usuarios"
-            value={totalUsers ?? 'Cargando...'}
+            value={totalUsers ?? "Cargando..."}
             subtitle="registrados"
             delay={0.15}
           />
           <Card
             title="Clubes"
-            value="1,322"
+            value={totalClubs ?? "Cargando..."}
             subtitle="registrados"
             delay={0.2}
           />
           <Card
             title="Torneos"
-            value="455"
+            value={totalTournaments ?? "Cargando..."}
             subtitle="publicados"
             delay={0.25}
           />
@@ -178,117 +179,49 @@ export default function DashboardCards() {
 
         {/* CONTENIDO PRINCIPAL */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* IZQUIERDA */}
+          {/* RANKIGNS */}
           <div className="lg:col-span-2 space-y-8">
-            {/* FILA 1 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ChartCard title="Tasa de torneos (mensual)" delay={0.3}>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={torneosData}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#7c3aed" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-gray-200 p-6 flex flex-col grow"
+              >
+                <h3 className="font-bold mb-4 text-gray-800 text-lg">
+                  Ranking de Clubes
+                </h3>
 
-              <ChartCard title="Participación de Clubs" delay={0.35}>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie data={clubsPie} dataKey="value" outerRadius={90} label>
-                      {clubsPie.map((entry, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            </div>
+                <div className="overflow-x-auto">
+                  <ClubRankings
+                    clubRankings={clubRankings}
+                    loadingRankings={loadingRankings}
+                  />
+                </div>
+              </motion.div>
 
-            {/* FILA 2 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ChartCard title="Actividades completadas (Sprint)" delay={0.4}>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={tareasData}>
-                    <XAxis dataKey="sprint" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="tareas"
-                      stroke="#7c3aed"
-                      strokeWidth={3}
-                      dot={{ r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartCard>
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-gray-200 p-6 flex flex-col grow"
+              >
+                <h3 className="font-bold mb-4 text-gray-800 text-lg">
+                  Ranking de Competidores
+                </h3>
 
-              <ChartCard title="Clubs vs Otros" delay={0.45}>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={clubsVsOtros}
-                      dataKey="value"
-                      innerRadius={40}
-                      outerRadius={80}
-                      paddingAngle={5}
-                    >
-                      {clubsVsOtros.map((entry, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartCard>
+                <div className="overflow-x-auto">
+                  <CompetitorRankings
+                    competitorRankings={competitorRankings}
+                    loadingCompetitors={loadingCompetitors}
+                  />
+                </div>
+              </motion.div>
             </div>
           </div>
 
-          {/* DERECHA */}
           <div className="flex flex-col gap-6">
-            {/* RANKING */}
-            <motion.div
-              initial={{ opacity: 0, y: 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-gray-200 p-6 flex flex-col grow"
-            >
-              <h3 className="font-bold mb-4 text-gray-800 text-lg">
-                Ranking de Clubes
-              </h3>
-
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm text-gray-700">
-                  <thead>
-                    <tr className="border-b bg-gray-50">
-                      <th className="py-2 px-2">#</th>
-                      <th className="py-2 px-2">Club</th>
-                      <th className="py-2 px-2 text-right">Puntaje</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rankingData.map((item) => (
-                      <tr
-                        key={item.id}
-                        className="border-b last:border-none hover:bg-gray-50 transition"
-                      >
-                        <td className="py-2 px-2">{item.id}</td>
-                        <td className="py-2 px-2">{item.club}</td>
-                        <td className="py-2 px-2 text-right font-semibold text-gray-900">
-                          {item.pts} pts
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
-
-            {/* AVANCE */}
+            {/* AVANCE SPRINT */}
             <motion.div
               initial={{ opacity: 0, y: 25 }}
               animate={{ opacity: 1, y: 0 }}
@@ -330,21 +263,6 @@ function Card({ title, value, subtitle, delay }) {
       <p className="text-xs text-purple-600 mt-1 uppercase tracking-wider">
         {subtitle}
       </p>
-    </motion.div>
-  );
-}
-
-/* Tarjeta contenedora de gráficos */
-function ChartCard({ title, children, delay }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-gray-200 p-6 flex flex-col hover:scale-[1.01] transition"
-    >
-      <h3 className="font-semibold mb-3 text-gray-700">{title}</h3>{" "}
-      <div className="flex-1 min-h-[200px]">{children}</div>{" "}
     </motion.div>
   );
 }

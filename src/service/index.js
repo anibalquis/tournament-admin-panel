@@ -1,4 +1,4 @@
-export { getClubs, createClub, deleteClub, updateClub } from "./clubs";
+export { getClubs, createClub, deleteClub, updateClub, getTotalClubs } from "./clubs";
 export {
   getCategories,
   createCategory,
@@ -12,4 +12,6 @@ export {
   createTournament,
   updateTournament,
   deleteTournament,
+  getTotalTournaments,
 } from "./tournaments";
+export { getClubRankings, getCompetitorRankings } from "./rankings";

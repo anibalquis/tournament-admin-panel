@@ -108,3 +108,21 @@ export const updateClub = async ({
     return getErrorMessage({ error });
   }
 };
+
+export const getTotalClubs = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/clubs`, {
+      method: "GET",
+    });
+
+    const clubs = await res.json();
+
+    if (!res.ok) {
+      throw new Error(clubs.error ?? "Error al obtener el total de clubes");
+    }
+
+    return { isError: false, total: clubs.total };
+  } catch (error) {
+    return getErrorMessage({ error });
+  }
+};

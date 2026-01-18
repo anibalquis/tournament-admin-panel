@@ -208,3 +208,21 @@ export const matchTournament = async ({ matchId, winnerId }) => {
     return getErrorMessage({ error });
   }
 };
+
+export const getTotalTournaments = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/tournaments`, {
+      method: "GET",
+    });
+
+    const tournaments = await res.json();
+
+    if (!res.ok) {
+      throw new Error(tournaments.error ?? "Error al obtener el total de torneos");
+    }
+
+    return { isError: false, total: tournaments.total };
+  } catch (error) {
+    return getErrorMessage({ error });
+  }
+};
