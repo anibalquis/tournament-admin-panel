@@ -1,16 +1,37 @@
-# React + Vite
+# Tournament Admin Panel
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Panel administrativo web diseñado para la gestión de torneos de robótica. Permite a los administradores crear, configurar y supervisar torneos, administrar robots participantes, categorías, rondas, enfrentamientos y resultados, ofreciendo una interfaz clara e intuitiva para el control operativo del evento.
 
-Currently, two official plugins are available:
+## 🛠️ Tecnologías Utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Shadcn/ui](https://img.shields.io/badge/shadcn/ui-%23000000?style=for-the-badge&logo=shadcnui&logoColor=white)
+![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)
 
-## React Compiler
+## 🚀 Instalación y Ejecución
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Clona el repositorio:**
 
-## Expanding the ESLint configuration
+```bash
+git clone https://github.com/anibalquis/tournament-admin-panel.git
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. **Navega a la carpeta del proyecto:**
+
+```bash
+cd tournament-admin-panel
+```
+
+3. **Instala las dependencias:**
+
+```bash
+npm install
+```
+
+4. **Ejecuta el servidor de desarrollo:**
+
+```bash
+npm run dev
+```
