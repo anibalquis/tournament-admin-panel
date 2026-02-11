@@ -30,7 +30,7 @@ export const DeleteTorneoButton = ({ torneo, onDelete }) => {
           <AlertDialogTitle>¿Estás seguro de eliminar el torneo?</AlertDialogTitle>
           <AlertDialogDescription>
             Esta acción no se puede deshacer. Eliminará permanentemente el torneo{" "}
-            <strong>{torneo.name}</strong>.
+            <strong className="break-all">{torneo.name}</strong>.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

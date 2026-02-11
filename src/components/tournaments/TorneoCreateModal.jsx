@@ -53,7 +53,7 @@ export const TorneoCreateModal = ({ onClose, onSuccess }) => {
 
         // Filter users to get only judges
         const judgeUsers = (usersRes.data || []).filter(
-          (u) => u.role === "judge"
+          (u) => u.role === "judge",
         );
         setJudges(judgeUsers);
       } catch (err) {
@@ -83,7 +83,7 @@ export const TorneoCreateModal = ({ onClose, onSuccess }) => {
       .filter((_, i) => i !== slotIndex)
       .filter(Boolean);
     return clubs.filter(
-      (club) => !selectedInOtherSlots.includes(club.id.toString())
+      (club) => !selectedInOtherSlots.includes(club.id.toString()),
     );
   };
 
@@ -182,10 +182,14 @@ export const TorneoCreateModal = ({ onClose, onSuccess }) => {
 
               {/* Description */}
               <div>
-                <label className="block text-gray-600 mb-1 text-sm font-medium">
+                <label
+                  className="block text-gray-600 mb-1 text-sm font-medium"
+                  htmlFor="tournament-description"
+                >
                   Descripción
                 </label>
                 <textarea
+                  id="tournament-description"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })

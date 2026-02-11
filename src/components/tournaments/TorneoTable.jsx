@@ -102,7 +102,7 @@ export const TorneoTable = ({
                   </Button>
                 </div>
 
-                <div className="flex justify-between flex-wrap gap-2">
+                <div className="flex justify-between flex-wrap gap-2 max-w-fit">
                   <Button
                     onClick={() => onUpdateClick(torneo)}
                     className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
