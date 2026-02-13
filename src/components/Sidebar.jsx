@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import logo from "../assets/images/Logo.png";
+import logo from "../assets/images/logo.png";
 import { AuthContext } from "../context/authProvider"
 
 export default function Sidebar() {

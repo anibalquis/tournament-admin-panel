@@ -2,7 +2,7 @@ import Silk from '../ui/Silk';
 import { useState } from "react";
 import { FaArrowLeft, FaEnvelope, FaLock, FaArrowRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/images/Logo.png";
+import logo from "../assets/images/logo.png";
 import { forgotPassword } from '../service/auth';
 import { notifyInfo, notifyError, notifySuccess } from '../lib/notify';
 

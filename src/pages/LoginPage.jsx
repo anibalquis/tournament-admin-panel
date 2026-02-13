@@ -9,7 +9,7 @@ import {
   FaShieldAlt,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/images/Logo.png";
+import logo from "../assets/images/logo.png";
 import { sendingLogin } from "../service/auth";
 import { AuthContext } from "../context/authProvider";
 import { notifyError } from "../lib/notify";
